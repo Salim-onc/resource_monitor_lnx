@@ -1,5 +1,15 @@
-/* 
+/*
  * resource_monitor.c
+ * A complete Linux CLI tool to monitor system resources using /proc filesystem.
+ * Features:
+ * - Real-time CPU usage % (calculated from deltas)
+ * - Memory usage % with GB values
+ * - Load averages + running/total processes
+ * - Refreshes every 1 second with a clean "dashboard" view
+ * - Graceful exit on Ctrl+C
+ *
+ * Compile: gcc -o resource_monitor resource_monitor.c
+ * Run:    ./resource_monitor
  */
 
 #include <stdio.h>
@@ -14,6 +24,7 @@ void sigint_handler(int sig) {
     running = 0;
 }
 
+/* Collect CPU statistics from /proc/stat */
 typedef struct {
     unsigned long long user;
     unsigned long long nice;
@@ -27,8 +38,7 @@ typedef struct {
     unsigned long long guest_nice;
 } cpu_stats_t;
 
-
-
+/* Read first "cpu" line from /proc/stat */
 void read_cpu_stats(cpu_stats_t *stats) {
     FILE *fp = fopen("/proc/stat", "r");
     if (!fp) {
@@ -49,7 +59,7 @@ void read_cpu_stats(cpu_stats_t *stats) {
 }
 
 
-
+/* Calculate CPU usage percentage from two snapshots */
 double get_cpu_percent(const cpu_stats_t *prev, const cpu_stats_t *curr) {
     unsigned long long prev_total = prev->user + prev->nice + prev->system + prev->idle +
                                     prev->iowait + prev->irq + prev->softirq + prev->steal +
@@ -68,6 +78,7 @@ double get_cpu_percent(const cpu_stats_t *prev, const cpu_stats_t *curr) {
     return (double)(delta_total - delta_idle) * 100.0 / delta_total;
 }
 
+/* Memory statistics from /proc/meminfo */
 typedef struct {
     unsigned long mem_total;
     unsigned long mem_available;
@@ -90,6 +101,7 @@ void read_mem_stats(mem_stats_t *stats) {
     fclose(fp);
 }
 
+/* Read load average + processes from /proc/loadavg */
 void read_loadavg(double *load1, double *load2, double *load3, int *running_procs, int *total_procs) {
     FILE *fp = fopen("/proc/loadavg", "r");
     if (!fp) {
@@ -106,7 +118,7 @@ int main(void) {
     cpu_stats_t prev_cpu, curr_cpu;
     read_cpu_stats(&prev_cpu);
 
-    printf("Linux System Resource Monitor \n\n");
+    printf("=== Linux System Resource Monitor ===\n\n");
     printf("Monitoring every 1 second. Press Ctrl+C to exit.\n\n");
 
     while (running) {
@@ -136,7 +148,7 @@ int main(void) {
                mem.mem_total / 1024.0 / 1024.0);
         printf("Load Average   : %.2f  %.2f  %.2f\n", load1, load2, load3);
         printf("Processes      : %d running / %d total\n", running_procs, total_procs);
-        printf("────────────────────────────────────────────────\n");
+        printf("────────────────────────────────────────────────────────────────────\n");
         printf("Monitoring via /proc/stat, /proc/meminfo, /proc/loadavg\n");
         printf("Press Ctrl+C to exit...\n");
     }
