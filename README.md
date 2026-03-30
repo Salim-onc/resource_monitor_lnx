@@ -25,3 +25,13 @@ git clone https://github.com/Salim-onc/resource_monitor_lnx.git
 cd sysmon
 make
 sudo make install
+```
+
+## How to build and run right now
+```bash
+1. Save the code as sysmon.c
+2. Save Makefile
+3. Run:
+make
+./sysmon
+```
