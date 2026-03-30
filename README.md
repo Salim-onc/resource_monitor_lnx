@@ -22,7 +22,7 @@ A complete Linux CLI tool to monitor system resources using /proc filesystem
 
 ```bash
 git clone https://github.com/Salim-onc/resource_monitor_lnx.git
-cd sysmon
+cd resource_monitor_lnx
 make
 sudo make install
 ```
