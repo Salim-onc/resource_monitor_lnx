@@ -50,4 +50,4 @@ Pure /proc parsing
 Perfect for servers and embedded systems
 
 ## License
-GPL2 License
+GPL3.0 License
