@@ -35,3 +35,19 @@ sudo make install
 make
 ./sysmon
 ```
+
+## Colors Meaning
+
+Green: Normal usage (< 60%)
+Yellow: Moderate usage (60-80%)
+Red: High usage (> 80%)
+
+## Why use resource_monitor ?
+
+Faster and lighter than htop, top, or glances
+No ncurses dependency
+Pure /proc parsing
+Perfect for servers and embedded systems
+
+## License
+GPL2 License
