@@ -27,6 +27,7 @@
 
 volatile sig_atomic_t running = 1;
 
+/* Signal handler */
 void sigint_handler(int sig) {
     running = 0;
 }
@@ -50,6 +51,7 @@ typedef struct {
     unsigned long swap_total, swap_free;
 } mem_stats_t;
 
+/* header for the dashboard view */
 void print_header() {
     printf("\033[2J\033[H");  // Clear screen and move cursor to top
     time_t now = time(NULL);
