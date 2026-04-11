@@ -105,31 +105,50 @@ double calculate_cpu_usage(cpu_stats_t *prev, cpu_stats_t *curr) {
 }
 
 /* Memory statistics from /proc/meminfo */
-void read_mem_stats(mem_stats_t *stats) {
-    FILE *fp = fopen(PROC_MEMINFO, "r");
+int read_mem_stats(mem_stats_t *stats) {
+    if (!stats) return -1;
+
+    FILE *fp = fopen(PROC_MEMINFO, "r");  // FILE* is acceptable here (small file)
     if (!fp) {
         perror("fopen /proc/meminfo");
-        exit(EXIT_FAILURE);
+        return -1;
     }
 
     char line[256];
+    memset(stats, 0, sizeof(mem_stats_t));  // reset
+
     while (fgets(line, sizeof(line), fp)) {
+        // Faster approach: find ':' and use switch on keyword length or strncmp
         if (strncmp(line, "MemTotal:", 9) == 0)
-            sscanf(line, "MemTotal: %lu", &stats->total);
-        else if (strncmp(line, "MemFree:", 8) == 0)
-            sscanf(line, "MemFree: %lu", &stats->free);
+            sscanf(line + 9, "%lu", &stats->total);
         else if (strncmp(line, "MemAvailable:", 13) == 0)
-            sscanf(line, "MemAvailable: %lu", &stats->available);
+            sscanf(line + 13, "%lu", &stats->available);
+        else if (strncmp(line, "MemFree:", 8) == 0)
+            sscanf(line + 8, "%lu", &stats->free);
         else if (strncmp(line, "Buffers:", 8) == 0)
-            sscanf(line, "Buffers: %lu", &stats->buffers);
+            sscanf(line + 8, "%lu", &stats->buffers);
         else if (strncmp(line, "Cached:", 7) == 0)
-            sscanf(line, "Cached: %lu", &stats->cached);
+            sscanf(line + 7, "%lu", &stats->cached);
         else if (strncmp(line, "SwapTotal:", 10) == 0)
-            sscanf(line, "SwapTotal: %lu", &stats->swap_total);
+            sscanf(line + 10, "%lu", &stats->swap_total);
         else if (strncmp(line, "SwapFree:", 9) == 0)
-            sscanf(line, "SwapFree: %lu", &stats->swap_free);
+            sscanf(line + 9, "%lu", &stats->swap_free);
+
+        // You can stop early if you have all needed fields (add a counter)
     }
+
     fclose(fp);
+
+    // Derived values (modern best practice)
+    if (stats->available > 0)
+        stats->used = stats->total - stats->available;
+    else
+        stats->used = stats->total - stats->free - stats->buffers - stats->cached;
+
+    if (stats->swap_total > stats->swap_free)
+        stats->swap_used = stats->swap_total - stats->swap_free;
+
+    return 0;
 }
 
 /* Read load average + processes from /proc/loadavg */
