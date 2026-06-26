@@ -29,7 +29,7 @@ sudo make install
 
 ## How to build and run right now
 ```bash
-1. Save the code as sysmon.c
+1. Save the file as sysmon.c
 2. Save Makefile
 3. Run:
 make
